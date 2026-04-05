@@ -35,7 +35,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero — fixed panel + 100vh spacer */}
-      <div id="home" style={{ background: 'transparent' }}>
+      <div id="home">
         <ScrollExpansionHero />
       </div>
 
@@ -43,7 +43,6 @@ export default function Home() {
       <main
         id="main-content"
         style={{
-          position: 'relative',
           opacity: heroComplete ? 1 : 0,
           transition: 'opacity 1.2s ease',
           pointerEvents: heroComplete ? 'auto' : 'none',
