@@ -143,13 +143,23 @@ export default function ScrollExpansionHero() {
             overflow: 'hidden',
             backgroundColor: '#111',
           }}>
-          <Image
-            src="/images/hero2.png"
-            alt=""
-            fill
-            priority
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
-          />
+            {/* Video element — fills container reliably, no img height:auto Tailwind conflict */}
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster="/images/hero2.png"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block',
+              }}
+            />
           {/* Gradient overlay */}
           <div
             style={{
