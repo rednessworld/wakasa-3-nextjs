@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
 import { t } from '@/lib/translations';
@@ -95,9 +95,33 @@ function FlipCard({
 }) {
   const [flipped, setFlipped] = useState(false);
   const items = MENU_DATA[category];
+  const cardRef = useRef<HTMLDivElement>(null);
+  const hintedRef = useRef(false);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !hintedRef.current && window.innerWidth < 768) {
+          hintedRef.current = true;
+          const t1 = setTimeout(() => setFlipped(true),  600);
+          const t2 = setTimeout(() => setFlipped(false), 1800);
+          return () => { clearTimeout(t1); clearTimeout(t2); };
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div
+      ref={cardRef}
       onClick={() => setFlipped((f) => !f)}
       style={{ width: '280px', height: '520px', cursor: 'pointer', perspective: '1000px', flexShrink: 0 }}
     >
