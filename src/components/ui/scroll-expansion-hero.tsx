@@ -134,23 +134,17 @@ export default function ScrollExpansionHero() {
             overflow: 'hidden',
             zIndex: 2,
             backgroundColor: '#111',
+            willChange: 'transform',
+            isolation: 'isolate',
           }}
         >
-          {/* Hero image — fills container exactly like a video would */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {/* Hero image — Next.js Image with priority ensures no grey loading state */}
+          <Image
             src="/images/hero2.png"
             alt=""
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              display: 'block',
-            }}
+            fill
+            priority
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
           />
           {/* Gradient overlay */}
           <div
@@ -163,7 +157,7 @@ export default function ScrollExpansionHero() {
           />
 
           {/* Logo */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element */ }
           <img
             ref={logoRef}
             src="/images/WAKASA LOGO.png"
