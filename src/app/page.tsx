@@ -39,13 +39,11 @@ export default function Home() {
         <ScrollExpansionHero />
       </div>
 
-      {/* Main content — z-index 20 covers fixed hero (z-index 10) when scrolled in.
-          Fades in on heroComplete, fades out on heroReverse. */}
+      {/* Main content — fades in once hero expansion completes */}
       <main
         id="main-content"
         style={{
           position: 'relative',
-          zIndex: 20,
           opacity: heroComplete ? 1 : 0,
           transition: 'opacity 1.2s ease',
           pointerEvents: heroComplete ? 'auto' : 'none',

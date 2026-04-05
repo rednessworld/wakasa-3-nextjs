@@ -19,17 +19,11 @@ export default function ScrollExpansionHero() {
 
   // Animation state — refs only, never useState
   const rafRef          = useRef<number>(0);
+  const rafScheduled    = useRef<boolean>(false);
   const completeRef     = useRef<boolean>(false);
   const targetProgress  = useRef<number>(0);
   const currentProgress = useRef<number>(0);
 
-  // Touch refs
-  const touchStartY   = useRef<number>(0);
-  const touchLastY    = useRef<number>(0);
-  const touchVelocity = useRef<number>(0);
-  const lastTouchTime = useRef<number>(0);
-
-  const clamp01  = (v: number) => Math.min(1, Math.max(0, v));
   const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
   const applyFrame = useCallback(() => {
@@ -66,14 +60,16 @@ export default function ScrollExpansionHero() {
   }, []);
 
   const tick = useCallback(() => {
-    // Lerp currentProgress toward targetProgress — 0.06 gives buttery smooth easing
+    rafScheduled.current = false;
+
+    // Lerp currentProgress toward targetProgress
     currentProgress.current += (targetProgress.current - currentProgress.current) * 0.06;
 
-    // Snap to endpoints — 0.98 threshold stops preventDefault and completes animation
+    // Snap to endpoints
     if (currentProgress.current >= 0.98) currentProgress.current = 1;
-    if (currentProgress.current < 0.0001) currentProgress.current = 0;
+    if (currentProgress.current < 0.001) currentProgress.current = 0;
 
-    // Fire completion events based on smooth currentProgress
+    // Fire completion events
     if (currentProgress.current >= 1 && !completeRef.current) {
       completeRef.current = true;
       window.dispatchEvent(new CustomEvent('heroComplete'));
@@ -83,120 +79,70 @@ export default function ScrollExpansionHero() {
     }
 
     applyFrame();
-    rafRef.current = requestAnimationFrame(tick);
+
+    // Keep running until settled
+    if (Math.abs(targetProgress.current - currentProgress.current) > 0.001) {
+      rafScheduled.current = true;
+      rafRef.current = requestAnimationFrame(tick);
+    }
   }, [applyFrame]);
 
-  // ── WHEEL (desktop) ──────────────────────────────────────────────────────
-  const handleWheel = useCallback((e: WheelEvent) => {
-    // Near-complete or complete — release scroll to page
-    if (targetProgress.current >= 0.98) return;
-
-    if (targetProgress.current < 1) {
-      e.preventDefault();
-      targetProgress.current = clamp01(targetProgress.current + e.deltaY * 0.0008);
-      return;
+  const scheduleTick = useCallback(() => {
+    if (!rafScheduled.current) {
+      rafScheduled.current = true;
+      rafRef.current = requestAnimationFrame(tick);
     }
-    if (e.deltaY < 0 && window.scrollY <= 0) {
-      e.preventDefault();
-      targetProgress.current = clamp01(targetProgress.current + e.deltaY * 0.0008);
-    }
-  }, []);
-
-  // ── TOUCH (mobile) ───────────────────────────────────────────────────────
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    touchStartY.current   = e.touches[0].clientY;
-    touchLastY.current    = e.touches[0].clientY;
-    touchVelocity.current = 0;
-    lastTouchTime.current = Date.now();
-  }, []);
-
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    const y         = e.touches[0].clientY;
-    const now       = Date.now();
-    const timeDelta = Math.max(1, now - lastTouchTime.current); // guard div-by-zero
-    const delta     = touchLastY.current - y; // positive = swiping up / scrolling forward
-
-    touchVelocity.current = delta / timeDelta; // px per ms
-
-    // Near-complete or complete — release scroll to page
-    if (targetProgress.current >= 0.98) {
-      touchLastY.current    = y;
-      lastTouchTime.current = now;
-      return;
-    }
-
-    // Pull-to-refresh: at 0 and pulling down — don't intercept
-    if (targetProgress.current <= 0 && delta < 0) {
-      touchLastY.current    = y;
-      lastTouchTime.current = now;
-      return;
-    }
-
-    e.preventDefault();
-    targetProgress.current = clamp01(targetProgress.current + delta * 0.0012);
-    touchLastY.current     = y;
-    lastTouchTime.current  = now;
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    // Fling momentum: project targetProgress by velocity × 80ms
-    targetProgress.current = clamp01(targetProgress.current + touchVelocity.current * 80);
-  }, []);
-
-  const handleReset = useCallback(() => {
-    targetProgress.current  = 0;
-    currentProgress.current = 0;
-    completeRef.current     = false;
-    window.scrollTo(0, 0);
-    applyFrame();
-  }, [applyFrame]);
+  }, [tick]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
     if (typeof history !== 'undefined') history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
 
-    rafRef.current = requestAnimationFrame(tick);
+    const handleScroll = () => {
+      // scrollProgress = how far through the first 100vh the user has scrolled
+      targetProgress.current = Math.min(window.scrollY / window.innerHeight, 1);
+      scheduleTick();
+    };
 
-    window.addEventListener('wheel',      handleWheel,      { passive: false });
-    window.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove',  handleTouchMove,  { passive: false });
-    window.addEventListener('touchend',   handleTouchEnd,   { passive: true  });
-    window.addEventListener('resetHero',  handleReset);
+    const handleReset = () => {
+      targetProgress.current  = 0;
+      currentProgress.current = 0;
+      completeRef.current     = false;
+      window.scrollTo(0, 0);
+      applyFrame();
+    };
+
+    window.addEventListener('scroll',    handleScroll, { passive: true });
+    window.addEventListener('resetHero', handleReset);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('wheel',      handleWheel);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove',  handleTouchMove);
-      window.removeEventListener('touchend',   handleTouchEnd);
-      window.removeEventListener('resetHero',  handleReset);
+      window.removeEventListener('scroll',    handleScroll);
+      window.removeEventListener('resetHero', handleReset);
     };
-  }, [tick, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd, handleReset]);
+  }, [tick, scheduleTick, applyFrame]);
 
-  // Set correct initial size based on viewport
   const mobile        = typeof window !== 'undefined' && window.innerWidth < 768;
   const initialWidth  = mobile ? '85vw' : '30vw';
   const initialHeight = mobile ? '45vh' : '40vh';
 
   return (
-    <>
-      {/* ── Full-screen fixed hero panel ── */}
+    // 200vh wrapper — provides the scroll track for the sticky panel
+    <div style={{ position: 'relative', height: '200vh' }}>
+
+      {/* Sticky panel — stays pinned for the full 200vh scroll */}
       <div
         style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
           overflow: 'hidden',
-          zIndex: 10,
         }}
       >
         {/* Blurred background — hero1.png */}
         <div
           ref={bgRef}
-          style={{
-            position: 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
-            zIndex: 0,
-          }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}
         >
           <Image
             src="/images/hero1.png"
@@ -206,7 +152,7 @@ export default function ScrollExpansionHero() {
             priority
           />
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.45)' }} />
-          {/* Noise texture over hero */}
+          {/* Noise texture */}
           <div
             style={{
               position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -216,7 +162,7 @@ export default function ScrollExpansionHero() {
           />
         </div>
 
-        {/* ── Expanding center container — CSS background, no child image ── */}
+        {/* Expanding center container */}
         <div
           ref={containerRef}
           style={{
@@ -358,9 +304,6 @@ export default function ScrollExpansionHero() {
           </svg>
         </div>
       </div>
-
-      {/* 100vh spacer — pushes page content below viewport */}
-      <div style={{ height: '100vh', pointerEvents: 'none' }} />
-    </>
+    </div>
   );
 }
