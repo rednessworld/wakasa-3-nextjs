@@ -135,31 +135,19 @@ export default function ScrollExpansionHero() {
             zIndex: 2,
           }}
         >
-          {/* Visual card — owns border-radius + overflow:hidden independently */}
+          {/* Visual card — CSS background-size:cover is the only approach
+              guaranteed to fill in every browser (video poster doesn't respect
+              object-fit, img fights Tailwind preflight height:auto) */}
           <div style={{
             position: 'absolute',
             inset: 0,
             borderRadius: '12px',
             overflow: 'hidden',
+            backgroundImage: 'url("/images/hero2.png")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             backgroundColor: '#111',
           }}>
-            {/* Video element — fills container reliably, no img height:auto Tailwind conflict */}
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster="/images/hero2.png"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center',
-                display: 'block',
-              }}
-            />
           {/* Gradient overlay */}
           <div
             style={{
