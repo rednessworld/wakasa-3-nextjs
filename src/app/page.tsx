@@ -50,7 +50,7 @@ export default function Home() {
           pointerEvents: heroComplete ? 'auto' : 'none',
         }}
       >
-        <section id="about">
+        <section id="about" style={{ paddingTop: 0, marginTop: 0 }}>
           <AboutSection />
         </section>
         <section id="menu">

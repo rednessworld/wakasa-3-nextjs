@@ -29,7 +29,7 @@ export default function ScrollExpansionHero() {
     const loop = () => {
       if (!running) return;
 
-      const scrollProgress = Math.min(window.scrollY / (window.innerHeight * 0.8), 1);
+      const scrollProgress = Math.min(window.scrollY / (window.innerHeight * 0.75), 1);
       displayRef.current += (scrollProgress - displayRef.current) * 0.08;
 
       const d      = displayRef.current;
@@ -64,11 +64,16 @@ export default function ScrollExpansionHero() {
       if (hintRef.current)
         hintRef.current.style.opacity = String(Math.max(0, 1 - d * 4));
 
-      // Hide fixed panel once page has scrolled past the hero section
+      // Fade out fixed panel as user scrolls past the hero section
       if (panelRef.current) {
-        const past = window.scrollY > window.innerHeight;
-        panelRef.current.style.opacity       = past ? '0' : '1';
-        panelRef.current.style.pointerEvents = past ? 'none' : 'auto';
+        const fadeStart = window.innerHeight * 0.85;
+        const fadeEnd   = window.innerHeight * 1.05;
+        const scrollY   = window.scrollY;
+        const opacity   = scrollY >= fadeEnd   ? 0
+                        : scrollY >= fadeStart ? 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart)
+                        : 1;
+        panelRef.current.style.opacity       = String(opacity);
+        panelRef.current.style.pointerEvents = scrollY >= fadeEnd ? 'none' : 'auto';
       }
 
       // heroComplete event for page content fade-in
@@ -168,16 +173,17 @@ export default function ScrollExpansionHero() {
           <div
             style={{
               position: 'absolute',
-              bottom: '15%',
+              bottom: '12%',
               left: 0, right: 0,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: '12px',
-              zIndex: 2,
+              zIndex: 3,
               padding: '0 1.5rem',
               textAlign: 'center',
               background: 'transparent',
+              backgroundColor: 'transparent',
             }}
           >
             <div
@@ -189,12 +195,14 @@ export default function ScrollExpansionHero() {
                 letterSpacing: '0.12em',
                 opacity: 0.7,
                 lineHeight: 1.5,
+                background: 'transparent',
+                backgroundColor: 'transparent',
               }}
             >
               {tr.hero.tagline}
             </div>
 
-            <div ref={ctaRef} style={{ opacity: 0 }}>
+            <div ref={ctaRef} style={{ opacity: 0, background: 'transparent' }}>
               <a
                 href="tel:+34932081866"
                 style={{
@@ -252,7 +260,7 @@ export default function ScrollExpansionHero() {
       </div>
 
       {/* Spacer — pushes page content below viewport */}
-      <div style={{ height: '110vh', background: 'transparent', pointerEvents: 'none' }} />
+      <div style={{ height: '100vh', background: 'transparent', pointerEvents: 'none' }} />
     </>
   );
 }
