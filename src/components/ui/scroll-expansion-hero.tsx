@@ -69,8 +69,8 @@ export default function ScrollExpansionHero() {
     // Lerp currentProgress toward targetProgress — 0.06 gives buttery smooth easing
     currentProgress.current += (targetProgress.current - currentProgress.current) * 0.06;
 
-    // Snap to exact endpoints to avoid infinite micro-lerp
-    if (currentProgress.current > 0.9999) currentProgress.current = 1;
+    // Snap to endpoints — 0.98 threshold stops preventDefault and completes animation
+    if (currentProgress.current >= 0.98) currentProgress.current = 1;
     if (currentProgress.current < 0.0001) currentProgress.current = 0;
 
     // Fire completion events based on smooth currentProgress
@@ -88,6 +88,9 @@ export default function ScrollExpansionHero() {
 
   // ── WHEEL (desktop) ──────────────────────────────────────────────────────
   const handleWheel = useCallback((e: WheelEvent) => {
+    // Near-complete or complete — release scroll to page
+    if (targetProgress.current >= 0.98) return;
+
     if (targetProgress.current < 1) {
       e.preventDefault();
       targetProgress.current = clamp01(targetProgress.current + e.deltaY * 0.0008);
@@ -115,15 +118,15 @@ export default function ScrollExpansionHero() {
 
     touchVelocity.current = delta / timeDelta; // px per ms
 
-    // Pull-to-refresh: at 0 and pulling down — don't intercept
-    if (targetProgress.current <= 0 && delta < 0) {
+    // Near-complete or complete — release scroll to page
+    if (targetProgress.current >= 0.98) {
       touchLastY.current    = y;
       lastTouchTime.current = now;
       return;
     }
 
-    // Hero complete and not trying to reverse — let normal page scroll happen
-    if (targetProgress.current >= 1 && !(delta < 0 && window.scrollY <= 0)) {
+    // Pull-to-refresh: at 0 and pulling down — don't intercept
+    if (targetProgress.current <= 0 && delta < 0) {
       touchLastY.current    = y;
       lastTouchTime.current = now;
       return;
