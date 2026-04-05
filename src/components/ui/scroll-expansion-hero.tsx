@@ -26,23 +26,35 @@ export default function ScrollExpansionHero() {
 
   const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
+  const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
+
   const applyFrame = useCallback(() => {
     const p = progressRef.current;
+    const mobile = isMobile();
 
     if (bgRef.current)
       bgRef.current.style.filter = `blur(${p * 8}px)`;
 
     if (containerRef.current) {
-      containerRef.current.style.width        = `${30 + p * 60}vw`;
-      containerRef.current.style.height       = `${40 + p * 50}vh`;
+      if (mobile) {
+        // Mobile: start wide, expand to near-full
+        containerRef.current.style.width        = `${85 + p * 10}vw`;
+        containerRef.current.style.height       = `${45 + p * 20}vh`;
+      } else {
+        // Desktop
+        containerRef.current.style.width        = `${30 + p * 60}vw`;
+        containerRef.current.style.height       = `${40 + p * 50}vh`;
+      }
       containerRef.current.style.borderRadius = `${Math.max(0, 12 - p * 12)}px`;
     }
 
     if (logoRef.current)
       logoRef.current.style.opacity = String(0.3 + p * 0.7);
 
-    if (taglineRef.current)
-      taglineRef.current.style.opacity = String(Math.min(1, 0.3 + p * 0.7));
+    if (taglineRef.current) {
+      taglineRef.current.style.opacity  = String(Math.min(1, 0.3 + p * 0.7));
+      taglineRef.current.style.fontSize = mobile ? '14px' : 'clamp(0.7rem, 1.4vw, 0.95rem)';
+    }
 
     if (ctaRef.current)
       ctaRef.current.style.opacity = String(Math.min(1, Math.max(0, (p - 0.3) * 2)));
@@ -70,13 +82,11 @@ export default function ScrollExpansionHero() {
   }, []);
 
   const handleWheel = useCallback((e: WheelEvent) => {
-    // Always lock page scroll until hero is fully expanded (progress === 1)
     if (progressRef.current < 1) {
       e.preventDefault();
       advance(e.deltaY * 0.002);
       return;
     }
-    // Hero complete — allow page scroll, but intercept upward scroll at top to reverse hero
     if (e.deltaY < 0 && window.scrollY <= 0) {
       e.preventDefault();
       advance(e.deltaY * 0.002);
@@ -93,6 +103,11 @@ export default function ScrollExpansionHero() {
     const delta = (touchLastRef.current - y) * 0.004;
 
     if (!completeRef.current) {
+      // Allow pull-to-refresh: if at progress 0 and pulling down, don't intercept
+      if (progressRef.current === 0 && delta < 0) {
+        touchLastRef.current = y;
+        return;
+      }
       e.preventDefault();
       velocityRef.current  = delta;
       touchLastRef.current = y;
@@ -147,6 +162,11 @@ export default function ScrollExpansionHero() {
     };
   }, [tick, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd, handleReset]);
 
+  // Set correct initial size based on viewport
+  const mobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const initialWidth  = mobile ? '85vw' : '30vw';
+  const initialHeight = mobile ? '45vh' : '40vh';
+
   return (
     <>
       {/* ── Full-screen fixed hero panel ── */}
@@ -193,12 +213,11 @@ export default function ScrollExpansionHero() {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '30vw',
-            height: '40vh',
+            width: initialWidth,
+            height: initialHeight,
             borderRadius: '12px',
             overflow: 'hidden',
             zIndex: 2,
-            // Image as CSS background — guaranteed to fill, no child element quirks
             backgroundImage: 'url("/images/dessert3.png")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -257,7 +276,7 @@ export default function ScrollExpansionHero() {
               style={{
                 color: '#F5EFE6',
                 fontFamily: 'var(--font-okashi)',
-                fontSize: 'clamp(0.7rem, 1.4vw, 0.95rem)',
+                fontSize: mobile ? '14px' : 'clamp(0.7rem, 1.4vw, 0.95rem)',
                 letterSpacing: '0.12em',
                 opacity: 0.3,
                 lineHeight: 1.5,
