@@ -18,18 +18,22 @@ export default function ScrollExpansionHero() {
   const hintRef      = useRef<HTMLDivElement>(null);
 
   // Animation state — refs only, never useState
-  const progressRef  = useRef<number>(0);
-  const rafRef       = useRef<number>(0);
-  const completeRef  = useRef<boolean>(false);
-  const touchLastRef = useRef<number>(0);
-  const velocityRef  = useRef<number>(0);
+  const rafRef          = useRef<number>(0);
+  const completeRef     = useRef<boolean>(false);
+  const targetProgress  = useRef<number>(0);
+  const currentProgress = useRef<number>(0);
 
-  const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+  // Touch refs
+  const touchStartY   = useRef<number>(0);
+  const touchLastY    = useRef<number>(0);
+  const touchVelocity = useRef<number>(0);
+  const lastTouchTime = useRef<number>(0);
 
+  const clamp01  = (v: number) => Math.min(1, Math.max(0, v));
   const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
   const applyFrame = useCallback(() => {
-    const p = progressRef.current;
+    const p      = currentProgress.current;
     const mobile = isMobile();
 
     if (bgRef.current)
@@ -37,13 +41,11 @@ export default function ScrollExpansionHero() {
 
     if (containerRef.current) {
       if (mobile) {
-        // Mobile: start wide, expand to near-full
-        containerRef.current.style.width        = `${85 + p * 10}vw`;
-        containerRef.current.style.height       = `${45 + p * 20}vh`;
+        containerRef.current.style.width  = `${85 + p * 10}vw`;
+        containerRef.current.style.height = `${45 + p * 20}vh`;
       } else {
-        // Desktop
-        containerRef.current.style.width        = `${30 + p * 60}vw`;
-        containerRef.current.style.height       = `${40 + p * 50}vh`;
+        containerRef.current.style.width  = `${30 + p * 60}vw`;
+        containerRef.current.style.height = `${40 + p * 50}vh`;
       }
       containerRef.current.style.borderRadius = `${Math.max(0, 12 - p * 12)}px`;
     }
@@ -64,78 +66,84 @@ export default function ScrollExpansionHero() {
   }, []);
 
   const tick = useCallback(() => {
+    // Lerp currentProgress toward targetProgress — 0.06 gives buttery smooth easing
+    currentProgress.current += (targetProgress.current - currentProgress.current) * 0.06;
+
+    // Snap to exact endpoints to avoid infinite micro-lerp
+    if (currentProgress.current > 0.9999) currentProgress.current = 1;
+    if (currentProgress.current < 0.0001) currentProgress.current = 0;
+
+    // Fire completion events based on smooth currentProgress
+    if (currentProgress.current >= 1 && !completeRef.current) {
+      completeRef.current = true;
+      window.dispatchEvent(new CustomEvent('heroComplete'));
+    } else if (currentProgress.current < 1 && completeRef.current) {
+      completeRef.current = false;
+      window.dispatchEvent(new CustomEvent('heroReverse'));
+    }
+
     applyFrame();
     rafRef.current = requestAnimationFrame(tick);
   }, [applyFrame]);
 
-  const advance = useCallback((delta: number) => {
-    const next = clamp01(progressRef.current + delta);
-    progressRef.current = next;
-
-    if (next >= 1 && !completeRef.current) {
-      completeRef.current = true;
-      window.dispatchEvent(new CustomEvent('heroComplete'));
-    } else if (next < 1 && completeRef.current) {
-      completeRef.current = false;
-      window.dispatchEvent(new CustomEvent('heroReverse'));
-    }
-  }, []);
-
+  // ── WHEEL (desktop) ──────────────────────────────────────────────────────
   const handleWheel = useCallback((e: WheelEvent) => {
-    if (progressRef.current < 1) {
+    if (targetProgress.current < 1) {
       e.preventDefault();
-      advance(e.deltaY * 0.002);
+      targetProgress.current = clamp01(targetProgress.current + e.deltaY * 0.0008);
       return;
     }
     if (e.deltaY < 0 && window.scrollY <= 0) {
       e.preventDefault();
-      advance(e.deltaY * 0.002);
+      targetProgress.current = clamp01(targetProgress.current + e.deltaY * 0.0008);
     }
-  }, [advance]);
+  }, []);
 
+  // ── TOUCH (mobile) ───────────────────────────────────────────────────────
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    touchLastRef.current = e.touches[0].clientY;
-    velocityRef.current  = 0;
+    touchStartY.current   = e.touches[0].clientY;
+    touchLastY.current    = e.touches[0].clientY;
+    touchVelocity.current = 0;
+    lastTouchTime.current = Date.now();
   }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    const y     = e.touches[0].clientY;
-    const delta = (touchLastRef.current - y) * 0.004;
+    const y         = e.touches[0].clientY;
+    const now       = Date.now();
+    const timeDelta = Math.max(1, now - lastTouchTime.current); // guard div-by-zero
+    const delta     = touchLastY.current - y; // positive = swiping up / scrolling forward
 
-    if (!completeRef.current) {
-      // Allow pull-to-refresh: if at progress 0 and pulling down, don't intercept
-      if (progressRef.current === 0 && delta < 0) {
-        touchLastRef.current = y;
-        return;
-      }
-      e.preventDefault();
-      velocityRef.current  = delta;
-      touchLastRef.current = y;
-      advance(delta);
+    touchVelocity.current = delta / timeDelta; // px per ms
+
+    // Pull-to-refresh: at 0 and pulling down — don't intercept
+    if (targetProgress.current <= 0 && delta < 0) {
+      touchLastY.current    = y;
+      lastTouchTime.current = now;
       return;
     }
-    if (delta < 0 && window.scrollY <= 0) {
-      e.preventDefault();
-      velocityRef.current  = delta;
-      touchLastRef.current = y;
-      advance(delta);
+
+    // Hero complete and not trying to reverse — let normal page scroll happen
+    if (targetProgress.current >= 1 && !(delta < 0 && window.scrollY <= 0)) {
+      touchLastY.current    = y;
+      lastTouchTime.current = now;
+      return;
     }
-  }, [advance]);
+
+    e.preventDefault();
+    targetProgress.current = clamp01(targetProgress.current + delta * 0.0012);
+    touchLastY.current     = y;
+    lastTouchTime.current  = now;
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
-    if (completeRef.current) return;
-    const decay = () => {
-      if (Math.abs(velocityRef.current) < 0.0002 || completeRef.current) return;
-      velocityRef.current *= 0.94;
-      advance(velocityRef.current);
-      requestAnimationFrame(decay);
-    };
-    decay();
-  }, [advance]);
+    // Fling momentum: project targetProgress by velocity × 80ms
+    targetProgress.current = clamp01(targetProgress.current + touchVelocity.current * 80);
+  }, []);
 
   const handleReset = useCallback(() => {
-    progressRef.current = 0;
-    completeRef.current = false;
+    targetProgress.current  = 0;
+    currentProgress.current = 0;
+    completeRef.current     = false;
     window.scrollTo(0, 0);
     applyFrame();
   }, [applyFrame]);
@@ -163,7 +171,7 @@ export default function ScrollExpansionHero() {
   }, [tick, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd, handleReset]);
 
   // Set correct initial size based on viewport
-  const mobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const mobile        = typeof window !== 'undefined' && window.innerWidth < 768;
   const initialWidth  = mobile ? '85vw' : '30vw';
   const initialHeight = mobile ? '45vh' : '40vh';
 
