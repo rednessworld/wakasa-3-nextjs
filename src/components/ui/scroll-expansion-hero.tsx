@@ -40,11 +40,10 @@ export default function ScrollExpansionHero() {
 
       // Center container sizing
       if (containerRef.current) {
-        const w = mobile ? (80  + d * 15)  : (38 + d * 50);
-        const h = mobile ? (55  + d * 15)  : (28 + d * 37);
-        const unit = mobile ? 'vw' : 'vw';
-        containerRef.current.style.width        = `${w}${unit}`;
-        containerRef.current.style.height       = mobile ? `${h}vw` : `${h}vw`;
+        const w = mobile ? (82 + d * 13) : (35 + d * 50);
+        const h = mobile ? (55 + d * 17) : (55 + d * 20);
+        containerRef.current.style.width        = `${w}vw`;
+        containerRef.current.style.height       = `${h}vh`;
         containerRef.current.style.borderRadius = `${Math.max(0, 12 - d * 12)}px`;
       }
 
@@ -116,11 +115,12 @@ export default function ScrollExpansionHero() {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '38vw',
-            height: '28vw',
+            width: '35vw',
+            height: '55vh',
             borderRadius: '12px',
             overflow: 'hidden',
             zIndex: 2,
+            backgroundColor: 'transparent',
             backgroundImage: 'url("/images/hero2.png")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',

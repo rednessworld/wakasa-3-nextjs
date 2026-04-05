@@ -35,7 +35,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero — fixed panel + 100vh spacer */}
-      <div id="home">
+      <div id="home" style={{ margin: 0, padding: 0 }}>
         <ScrollExpansionHero />
       </div>
 

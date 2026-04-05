@@ -51,7 +51,7 @@ export default function Navbar() {
             onClick={handleLogoClick}
             className="relative flex-shrink-0"
             aria-label="WAKASA — volver al inicio"
-            style={{ height: '80px', width: '220px' }}
+            style={{ height: '80px', width: '220px', border: 'none', outline: 'none', background: 'none' }}
           >
             <Image
               src="/images/WAKASA LOGO.png"
@@ -59,6 +59,7 @@ export default function Navbar() {
               fill
               className="object-contain object-left"
               priority
+              style={{ border: 'none', outline: 'none' }}
             />
           </button>
 
