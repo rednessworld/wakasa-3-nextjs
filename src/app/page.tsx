@@ -46,6 +46,7 @@ export default function Home() {
           position: 'relative',
           zIndex: 20,
           opacity: heroComplete ? 1 : 0,
+          visibility: heroComplete ? 'visible' : 'hidden',
           transition: 'opacity 1.2s ease',
           pointerEvents: heroComplete ? 'auto' : 'none',
         }}
