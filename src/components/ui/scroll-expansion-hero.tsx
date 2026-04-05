@@ -49,10 +49,10 @@ export default function ScrollExpansionHero() {
     }
 
     if (logoRef.current)
-      logoRef.current.style.opacity = String(0.3 + p * 0.7);
+      logoRef.current.style.opacity = String(0.85 + p * 0.15);
 
     if (taglineRef.current) {
-      taglineRef.current.style.opacity  = String(Math.min(1, 0.3 + p * 0.7));
+      taglineRef.current.style.opacity  = String(Math.min(1, 0.9 + p * 0.1));
       taglineRef.current.style.fontSize = mobile ? '14px' : 'clamp(0.7rem, 1.4vw, 0.95rem)';
     }
 
@@ -250,7 +250,7 @@ export default function ScrollExpansionHero() {
               maxWidth: '90%',
               objectFit: 'contain',
               display: 'block',
-              opacity: 0.3,
+              opacity: 0.85,
               zIndex: 2,
             }}
           />
@@ -278,7 +278,7 @@ export default function ScrollExpansionHero() {
                 fontFamily: 'var(--font-okashi)',
                 fontSize: mobile ? '14px' : 'clamp(0.7rem, 1.4vw, 0.95rem)',
                 letterSpacing: '0.12em',
-                opacity: 0.3,
+                opacity: 0.9,
                 lineHeight: 1.5,
               }}
             >
