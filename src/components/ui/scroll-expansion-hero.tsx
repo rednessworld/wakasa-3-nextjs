@@ -143,11 +143,16 @@ export default function ScrollExpansionHero() {
             inset: 0,
             borderRadius: '12px',
             overflow: 'hidden',
-            backgroundImage: 'url("/images/hero2.png")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
             backgroundColor: '#111',
           }}>
+          {/* Hero image — explicit fill avoids CSS background-image rendering gaps */}
+          <Image
+            src="/images/hero2.png"
+            alt="WAKASA interior"
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+            priority
+          />
           {/* Gradient overlay */}
           <div
             style={{
