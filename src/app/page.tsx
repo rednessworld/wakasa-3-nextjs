@@ -43,6 +43,8 @@ export default function Home() {
       <main
         id="main-content"
         style={{
+          position: 'relative',
+          zIndex: 20,
           opacity: heroComplete ? 1 : 0,
           transition: 'opacity 1.2s ease',
           pointerEvents: heroComplete ? 'auto' : 'none',

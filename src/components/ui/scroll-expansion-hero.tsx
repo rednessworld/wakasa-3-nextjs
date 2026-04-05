@@ -10,6 +10,7 @@ export default function ScrollExpansionHero() {
   const tr = t(language);
 
   // DOM refs
+  const panelRef     = useRef<HTMLDivElement>(null);
   const bgRef        = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const logoRef      = useRef<HTMLImageElement>(null);
@@ -63,6 +64,13 @@ export default function ScrollExpansionHero() {
       if (hintRef.current)
         hintRef.current.style.opacity = String(Math.max(0, 1 - d * 4));
 
+      // Hide fixed panel once page has scrolled past the hero section
+      if (panelRef.current) {
+        const past = window.scrollY > window.innerHeight;
+        panelRef.current.style.opacity       = past ? '0' : '1';
+        panelRef.current.style.pointerEvents = past ? 'none' : 'auto';
+      }
+
       // heroComplete event for page content fade-in
       if (d >= 0.98 && !completeRef.current) {
         completeRef.current = true;
@@ -86,7 +94,7 @@ export default function ScrollExpansionHero() {
   return (
     <>
       {/* Fixed fullscreen panel */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 10, overflow: 'hidden' }}>
+      <div ref={panelRef} style={{ position: 'fixed', inset: 0, zIndex: 10, overflow: 'hidden' }}>
 
         {/* Background — hero1.png with blur */}
         <div ref={bgRef} style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
@@ -169,6 +177,7 @@ export default function ScrollExpansionHero() {
               zIndex: 2,
               padding: '0 1.5rem',
               textAlign: 'center',
+              background: 'transparent',
             }}
           >
             <div
@@ -243,7 +252,7 @@ export default function ScrollExpansionHero() {
       </div>
 
       {/* Spacer — pushes page content below viewport */}
-      <div style={{ height: '100vh', background: 'transparent', pointerEvents: 'none' }} />
+      <div style={{ height: '110vh', background: 'transparent', pointerEvents: 'none' }} />
     </>
   );
 }
