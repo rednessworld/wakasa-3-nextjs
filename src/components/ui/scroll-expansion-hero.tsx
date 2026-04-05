@@ -120,7 +120,9 @@ export default function ScrollExpansionHero() {
           />
         </div>
 
-        {/* Expanding center container */}
+        {/* Sizing wrapper — JS updates width/height here.
+            Kept separate from visual card so overflow:hidden + border-radius
+            don't conflict with transform: translate(-50%,-50%) in WebKit. */}
         <div
           ref={containerRef}
           style={{
@@ -130,15 +132,17 @@ export default function ScrollExpansionHero() {
             transform: 'translate(-50%, -50%)',
             width: '35vw',
             height: '55vh',
-            borderRadius: '12px',
-            overflow: 'hidden',
             zIndex: 2,
-            backgroundColor: '#111',
-            willChange: 'transform',
-            isolation: 'isolate',
           }}
         >
-          {/* Hero image — Next.js Image with priority ensures no grey loading state */}
+          {/* Visual card — owns border-radius + overflow:hidden independently */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '12px',
+            overflow: 'hidden',
+            backgroundColor: '#111',
+          }}>
           <Image
             src="/images/hero2.png"
             alt=""
@@ -228,8 +232,9 @@ export default function ScrollExpansionHero() {
                 {tr.hero.cta}
               </a>
             </div>
-          </div>
-        </div>
+          </div>{/* end tagline+CTA */}
+          </div>{/* end visual card */}
+        </div>{/* end sizing wrapper */}
 
         {/* Scroll hint */}
         <div
