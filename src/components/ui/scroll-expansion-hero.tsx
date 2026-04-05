@@ -133,12 +133,25 @@ export default function ScrollExpansionHero() {
             borderRadius: '12px',
             overflow: 'hidden',
             zIndex: 2,
-            backgroundColor: 'transparent',
-            backgroundImage: 'url("/images/hero2.png")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundColor: '#111',
           }}
         >
+          {/* Hero image — fills container exactly like a video would */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/hero2.png"
+            alt=""
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              display: 'block',
+            }}
+          />
           {/* Gradient overlay */}
           <div
             style={{
