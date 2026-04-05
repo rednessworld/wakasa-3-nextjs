@@ -37,7 +37,7 @@ const CAPTIONS = [
   'Karaage', 'Donburi', 'Wakasa-maki',
 ];
 
-const ROTATIONS = [-3, 2, -1.5, 3, -2, 1, -2.5, 1.5];
+const ROTATIONS = [-3, 2, -1.5, 3, -2, 1.5, -2.5, 2];
 
 // Alternating aspect ratios for visual rhythm in the masonry
 const ASPECTS = ['4/3', '3/4', '1/1', '3/4', '4/3', '1/1', '4/3', '3/4'];
@@ -135,9 +135,9 @@ export default function GallerySection() {
   const col3 = GALLERY_IMAGES.filter((_, i) => i % 3 === 2);
 
   return (
-    <section className="texture-dark py-24 px-6 md:px-16" style={{ overflow: 'hidden' }}>
+    <section className="texture-dark py-24 px-4 md:px-16" style={{ overflow: 'hidden' }}>
       <style>{`
-        .polaroid-col { display: flex; flex-direction: column; gap: 24px; }
+        .polaroid-col { display: flex; flex-direction: column; gap: 8px; }
         @media (max-width: 767px) {
           .polaroid-desktop { display: none !important; }
           .polaroid-mobile  { display: flex !important; }
@@ -164,21 +164,22 @@ export default function GallerySection() {
         {/* ── DESKTOP: 3-column masonry ── */}
         <div
           className="polaroid-desktop"
-          style={{ gap: '28px', alignItems: 'flex-start' }}
+          style={{ gap: '8px', alignItems: 'flex-start' }}
         >
           {[col1, col2, col3].map((col, colIdx) => (
             <div key={colIdx} className="polaroid-col" style={{ flex: 1 }}>
-              {col.map((img) => {
+              {col.map((img, colItemIdx) => {
                 const i = GALLERY_IMAGES.indexOf(img);
                 return (
-                  <Polaroid
-                    key={img.src}
-                    img={img}
-                    caption={CAPTIONS[i]}
-                    rotation={ROTATIONS[i % 8]}
-                    index={i}
-                    onClick={() => setLightboxIndex(i)}
-                  />
+                  <div key={img.src} style={{ marginTop: colItemIdx % 2 !== 0 ? '-20px' : '0px' }}>
+                    <Polaroid
+                      img={img}
+                      caption={CAPTIONS[i]}
+                      rotation={ROTATIONS[i % 8]}
+                      index={i}
+                      onClick={() => setLightboxIndex(i)}
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -191,15 +192,15 @@ export default function GallerySection() {
           style={{
             display: 'none',
             flexWrap: 'wrap',
-            gap: '12px',
+            gap: '4px',
           }}
         >
           {GALLERY_IMAGES.map((img, i) => (
             <div
               key={img.src}
               style={{
-                width: 'calc(50% - 6px)',
-                marginBottom: i % 2 === 0 ? '-8px' : '0px',
+                width: 'calc(50% - 2px)',
+                marginTop: i % 2 !== 0 ? '-20px' : '0px',
               }}
             >
               <Polaroid
