@@ -21,7 +21,6 @@ export default function ScrollExpansionHero() {
   // Animation state
   const displayRef    = useRef(0);
   const rafRef        = useRef(0);
-  const completeRef   = useRef(false);
 
   useEffect(() => {
     let running = true;
@@ -84,15 +83,8 @@ export default function ScrollExpansionHero() {
         panelRef.current.style.pointerEvents = panelOpacity <= 0 ? 'none' : 'auto';
       }
 
-      // heroComplete: fire when panel is mostly gone so about section fades in
-      // after the hero — not on top of it
-      if (panelOpacity < 0.3 && !completeRef.current) {
-        completeRef.current = true;
-        window.dispatchEvent(new CustomEvent('heroComplete'));
-      } else if (panelOpacity > 0.7 && completeRef.current) {
-        completeRef.current = false;
-        window.dispatchEvent(new CustomEvent('heroReverse'));
-      }
+      // No heroComplete event needed — hero panel (z-25) naturally covers main
+      // content (z-1) and reveals it as it fades out
 
       rafRef.current = requestAnimationFrame(loop);
     };
@@ -107,8 +99,8 @@ export default function ScrollExpansionHero() {
 
   return (
     <>
-      {/* Fixed fullscreen panel */}
-      <div ref={panelRef} style={{ position: 'fixed', inset: 0, zIndex: 10, overflow: 'hidden' }}>
+      {/* Fixed fullscreen panel — z-index 25 so it sits above main content naturally */}
+      <div ref={panelRef} style={{ position: 'fixed', inset: 0, zIndex: 25, overflow: 'hidden' }}>
 
         {/* Background — hero1.png with blur */}
         <div ref={bgRef} style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
