@@ -72,22 +72,24 @@ export default function ScrollExpansionHero() {
         hintRef.current.style.opacity = String(Math.max(0, 1 - d * 4));
 
       // Fade out fixed panel as user scrolls past the hero section
+      let panelOpacity = 1;
       if (panelRef.current) {
-        const fadeStart = window.innerHeight * 0.85;
-        const fadeEnd   = window.innerHeight * 1.05;
+        const fadeStart = window.innerHeight * 0.8;
+        const fadeEnd   = window.innerHeight * 1.5;
         const scrollY   = window.scrollY;
-        const opacity   = scrollY >= fadeEnd   ? 0
+        panelOpacity    = scrollY >= fadeEnd   ? 0
                         : scrollY >= fadeStart ? 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart)
                         : 1;
-        panelRef.current.style.opacity       = String(opacity);
-        panelRef.current.style.pointerEvents = scrollY >= fadeEnd ? 'none' : 'auto';
+        panelRef.current.style.opacity       = String(panelOpacity);
+        panelRef.current.style.pointerEvents = panelOpacity <= 0 ? 'none' : 'auto';
       }
 
-      // heroComplete event for page content fade-in
-      if (d >= 0.98 && !completeRef.current) {
+      // heroComplete: fire when panel is mostly gone so about section fades in
+      // after the hero — not on top of it
+      if (panelOpacity < 0.3 && !completeRef.current) {
         completeRef.current = true;
         window.dispatchEvent(new CustomEvent('heroComplete'));
-      } else if (d < 0.98 && completeRef.current) {
+      } else if (panelOpacity > 0.7 && completeRef.current) {
         completeRef.current = false;
         window.dispatchEvent(new CustomEvent('heroReverse'));
       }
