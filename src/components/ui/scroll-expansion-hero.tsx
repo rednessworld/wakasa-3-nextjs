@@ -57,8 +57,15 @@ export default function ScrollExpansionHero() {
         taglineRef.current.style.opacity = String(Math.min(1, 0.7 + d * 0.3));
 
       // CTA button
-      if (ctaRef.current)
-        ctaRef.current.style.opacity = String(Math.min(1, Math.max(0, (d - 0.4) * 2.5)));
+      if (ctaRef.current) {
+        const ctaOpacity = Math.min(1, Math.max(0, (d - 0.4) * 2.5));
+        if (ctaOpacity > 0) {
+          ctaRef.current.style.display = 'block';
+          ctaRef.current.style.opacity = String(ctaOpacity);
+        } else {
+          ctaRef.current.style.display = 'none';
+        }
+      }
 
       // Scroll hint
       if (hintRef.current)
@@ -133,6 +140,9 @@ export default function ScrollExpansionHero() {
             width: '35vw',
             height: '55vh',
             zIndex: 2,
+            backgroundColor: '#0a0a0a',
+            borderRadius: '12px',
+            overflow: 'hidden',
           }}
         >
           {/* Visual card — CSS background-size:cover is the only approach
@@ -216,7 +226,7 @@ export default function ScrollExpansionHero() {
               {tr.hero.tagline}
             </div>
 
-            <div ref={ctaRef} style={{ opacity: 0, background: 'transparent' }}>
+            <div ref={ctaRef} style={{ display: 'none' }}>
               <a
                 href="tel:+34932081866"
                 style={{
