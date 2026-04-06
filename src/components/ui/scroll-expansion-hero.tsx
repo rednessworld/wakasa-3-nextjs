@@ -10,7 +10,6 @@ export default function ScrollExpansionHero() {
   const tr = t(language);
 
   // DOM refs
-  const panelRef     = useRef<HTMLDivElement>(null);
   const bgRef        = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const logoRef      = useRef<HTMLImageElement>(null);
@@ -19,8 +18,8 @@ export default function ScrollExpansionHero() {
   const hintRef      = useRef<HTMLDivElement>(null);
 
   // Animation state
-  const displayRef    = useRef(0);
-  const rafRef        = useRef(0);
+  const displayRef = useRef(0);
+  const rafRef     = useRef(0);
 
   useEffect(() => {
     let running = true;
@@ -38,7 +37,7 @@ export default function ScrollExpansionHero() {
       if (bgRef.current)
         bgRef.current.style.filter = `blur(${d * 10}px)`;
 
-      // Center container sizing
+      // Card sizing
       if (containerRef.current) {
         const w = mobile ? (82 + d * 13) : (35 + d * 50);
         const h = mobile ? (55 + d * 17) : (55 + d * 20);
@@ -70,21 +69,6 @@ export default function ScrollExpansionHero() {
       if (hintRef.current)
         hintRef.current.style.opacity = String(Math.max(0, 1 - d * 4));
 
-      // Fade hero out completely BEFORE the about section enters the viewport.
-      // Spacer is 100vh, so about enters at scrollY = 1.0vh.
-      // We finish the fade at 0.95vh → zero overlap between hero and content.
-      if (panelRef.current) {
-        const vh        = window.innerHeight;
-        const scrollY   = window.scrollY;
-        const fadeStart = vh * 0.6;
-        const fadeEnd   = vh * 0.95;
-        const opacity   = scrollY >= fadeEnd   ? 0
-                        : scrollY >= fadeStart ? 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart)
-                        : 1;
-        panelRef.current.style.opacity       = String(opacity);
-        panelRef.current.style.pointerEvents = opacity <= 0 ? 'none' : 'auto';
-      }
-
       rafRef.current = requestAnimationFrame(loop);
     };
 
@@ -97,166 +81,161 @@ export default function ScrollExpansionHero() {
   }, []);
 
   return (
-    <>
-      {/* Fixed fullscreen panel — z-index 25 so it sits above main content naturally */}
-      <div ref={panelRef} style={{ position: 'fixed', inset: 0, zIndex: 25, overflow: 'hidden' }}>
+    // Normal in-flow section — scrolls away naturally, no overlap with content below
+    <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
 
-        {/* Background — hero1.png with blur */}
-        <div ref={bgRef} style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-          <Image
-            src="/images/hero1.png"
-            alt="WAKASA interior"
-            fill
-            style={{ objectFit: 'cover' }}
-            priority
-          />
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
-          <div
-            style={{
-              position: 'absolute', inset: 0,
-              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E\")",
-              pointerEvents: 'none',
-            }}
-          />
-        </div>
-
-        {/* Card — single element, background-image fills it, JS updates width/height/radius */}
+      {/* Background — hero1.png with blur */}
+      <div ref={bgRef} style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+        <Image
+          src="/images/hero1.png"
+          alt="WAKASA interior"
+          fill
+          style={{ objectFit: 'cover' }}
+          priority
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
         <div
-          ref={containerRef}
+          style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E\")",
+            pointerEvents: 'none',
+          }}
+        />
+      </div>
+
+      {/* Card */}
+      <div
+        ref={containerRef}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '35vw',
+          height: '55vh',
+          zIndex: 2,
+          borderRadius: '12px',
+          overflow: 'hidden',
+          backgroundImage: 'url(/images/hero2.png)',
+          backgroundSize: 'auto 130%',
+          backgroundPosition: 'center top',
+          backgroundColor: '#111',
+        }}
+      >
+        {/* Gradient overlay */}
+        <div
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 25%, transparent 60%)',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        />
+
+        {/* Logo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={logoRef}
+          src="/images/WAKASA LOGO.png"
+          alt="WAKASA 3.0"
           style={{
             position: 'absolute',
-            top: '50%',
+            top: '42%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '35vw',
-            height: '55vh',
+            width: '680px',
+            maxWidth: '90%',
+            objectFit: 'contain',
+            display: 'block',
+            opacity: 0.7,
             zIndex: 2,
-            borderRadius: '12px',
-            overflow: 'hidden',
-            backgroundImage: 'url(/images/hero2.png)',
-            backgroundSize: 'auto 130%',
-            backgroundPosition: 'center top',
-            backgroundColor: '#111',
           }}
-        >
-          {/* Gradient overlay */}
-          <div
-            style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 25%, transparent 60%)',
-              pointerEvents: 'none',
-              zIndex: 1,
-            }}
-          />
+        />
 
-          {/* Logo */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            ref={logoRef}
-            src="/images/WAKASA LOGO.png"
-            alt="WAKASA 3.0"
-            style={{
-              position: 'absolute',
-              top: '42%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '680px',
-              maxWidth: '90%',
-              objectFit: 'contain',
-              display: 'block',
-              opacity: 0.7,
-              zIndex: 2,
-            }}
-          />
-
-          {/* Tagline + CTA */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '12%',
-              left: 0, right: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '12px',
-              zIndex: 3,
-              padding: '0 1.5rem',
-              textAlign: 'center',
-            }}
-          >
-            <div
-              ref={taglineRef}
-              style={{
-                color: '#F5EFE6',
-                fontFamily: 'var(--font-okashi)',
-                fontSize: 'clamp(0.65rem, 1.4vw, 0.95rem)',
-                letterSpacing: '0.12em',
-                opacity: 0.7,
-                lineHeight: 1.5,
-              }}
-            >
-              {tr.hero.tagline}
-            </div>
-
-            <div ref={ctaRef} style={{ display: 'none' }}>
-              <a
-                href="tel:+34932081866"
-                style={{
-                  display: 'inline-block',
-                  backgroundColor: '#C0392B',
-                  color: 'white',
-                  padding: '10px 28px',
-                  borderRadius: '2px',
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  fontFamily: 'var(--font-dm-sans), sans-serif',
-                  textDecoration: 'none',
-                }}
-              >
-                {tr.hero.cta}
-              </a>
-            </div>
-          </div>{/* end tagline+CTA */}
-        </div>{/* end card */}
-
-        {/* Scroll hint */}
+        {/* Tagline + CTA */}
         <div
-          ref={hintRef}
           style={{
             position: 'absolute',
-            bottom: '2rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            bottom: '12%',
+            left: 0, right: 0,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '8px',
-            zIndex: 10,
+            gap: '12px',
+            zIndex: 3,
+            padding: '0 1.5rem',
+            textAlign: 'center',
           }}
         >
-          <span
+          <div
+            ref={taglineRef}
             style={{
-              color: 'rgba(245,239,230,0.55)',
-              fontSize: '0.6rem',
-              letterSpacing: '0.25em',
-              textTransform: 'uppercase',
-              fontFamily: 'var(--font-dm-sans), sans-serif',
+              color: '#F5EFE6',
+              fontFamily: 'var(--font-okashi)',
+              fontSize: 'clamp(0.65rem, 1.4vw, 0.95rem)',
+              letterSpacing: '0.12em',
+              opacity: 0.7,
+              lineHeight: 1.5,
             }}
           >
-            {tr.hero.scrollHint}
-          </span>
-          <svg width="14" height="22" viewBox="0 0 14 22" fill="none"
-            style={{ color: 'rgba(245,239,230,0.4)', animation: 'bounce 2s ease-in-out infinite' }}
-          >
-            <line x1="7" y1="0" x2="7" y2="14" stroke="currentColor" strokeWidth="1.5"/>
-            <polyline points="2,10 7,18 12,10" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-          </svg>
+            {tr.hero.tagline}
+          </div>
+
+          <div ref={ctaRef} style={{ display: 'none' }}>
+            <a
+              href="tel:+34932081866"
+              style={{
+                display: 'inline-block',
+                backgroundColor: '#C0392B',
+                color: 'white',
+                padding: '10px 28px',
+                borderRadius: '2px',
+                fontSize: '0.75rem',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-dm-sans), sans-serif',
+                textDecoration: 'none',
+              }}
+            >
+              {tr.hero.cta}
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* Spacer — pushes page content below viewport */}
-      <div style={{ height: '100vh', background: 'transparent', pointerEvents: 'none' }} />
-    </>
+      {/* Scroll hint */}
+      <div
+        ref={hintRef}
+        style={{
+          position: 'absolute',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px',
+          zIndex: 10,
+        }}
+      >
+        <span
+          style={{
+            color: 'rgba(245,239,230,0.55)',
+            fontSize: '0.6rem',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+          }}
+        >
+          {tr.hero.scrollHint}
+        </span>
+        <svg width="14" height="22" viewBox="0 0 14 22" fill="none"
+          style={{ color: 'rgba(245,239,230,0.4)', animation: 'bounce 2s ease-in-out infinite' }}
+        >
+          <line x1="7" y1="0" x2="7" y2="14" stroke="currentColor" strokeWidth="1.5"/>
+          <polyline points="2,10 7,18 12,10" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+        </svg>
+      </div>
+    </div>
   );
 }
