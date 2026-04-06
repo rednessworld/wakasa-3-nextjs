@@ -70,21 +70,20 @@ export default function ScrollExpansionHero() {
       if (hintRef.current)
         hintRef.current.style.opacity = String(Math.max(0, 1 - d * 4));
 
-      // Fade out fixed panel as user scrolls past the hero section
-      let panelOpacity = 1;
+      // Fade hero out completely BEFORE the about section enters the viewport.
+      // Spacer is 100vh, so about enters at scrollY = 1.0vh.
+      // We finish the fade at 0.95vh → zero overlap between hero and content.
       if (panelRef.current) {
-        const fadeStart = window.innerHeight * 0.8;
-        const fadeEnd   = window.innerHeight * 1.5;
+        const vh        = window.innerHeight;
         const scrollY   = window.scrollY;
-        panelOpacity    = scrollY >= fadeEnd   ? 0
+        const fadeStart = vh * 0.6;
+        const fadeEnd   = vh * 0.95;
+        const opacity   = scrollY >= fadeEnd   ? 0
                         : scrollY >= fadeStart ? 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart)
                         : 1;
-        panelRef.current.style.opacity       = String(panelOpacity);
-        panelRef.current.style.pointerEvents = panelOpacity <= 0 ? 'none' : 'auto';
+        panelRef.current.style.opacity       = String(opacity);
+        panelRef.current.style.pointerEvents = opacity <= 0 ? 'none' : 'auto';
       }
-
-      // No heroComplete event needed — hero panel (z-25) naturally covers main
-      // content (z-1) and reveals it as it fades out
 
       rafRef.current = requestAnimationFrame(loop);
     };
