@@ -127,9 +127,7 @@ export default function ScrollExpansionHero() {
           />
         </div>
 
-        {/* Sizing wrapper — JS updates width/height here.
-            Kept separate from visual card so overflow:hidden + border-radius
-            don't conflict with transform: translate(-50%,-50%) in WebKit. */}
+        {/* Card — single element, background-image fills it, JS updates width/height/radius */}
         <div
           ref={containerRef}
           style={{
@@ -140,29 +138,14 @@ export default function ScrollExpansionHero() {
             width: '35vw',
             height: '55vh',
             zIndex: 2,
-            backgroundColor: '#0a0a0a',
             borderRadius: '12px',
             overflow: 'hidden',
+            backgroundImage: 'url(/images/hero2.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundColor: '#111',
           }}
         >
-          {/* Visual card — CSS background-size:cover is the only approach
-              guaranteed to fill in every browser (video poster doesn't respect
-              object-fit, img fights Tailwind preflight height:auto) */}
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: '12px',
-            overflow: 'hidden',
-            backgroundColor: '#111',
-          }}>
-          {/* Hero image — explicit fill avoids CSS background-image rendering gaps */}
-          <Image
-            src="/images/hero2.png"
-            alt="WAKASA interior"
-            fill
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
-            priority
-          />
           {/* Gradient overlay */}
           <div
             style={{
@@ -174,7 +157,7 @@ export default function ScrollExpansionHero() {
           />
 
           {/* Logo */}
-          {/* eslint-disable-next-line @next/next/no-img-element */ }
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={logoRef}
             src="/images/WAKASA LOGO.png"
@@ -206,8 +189,6 @@ export default function ScrollExpansionHero() {
               zIndex: 3,
               padding: '0 1.5rem',
               textAlign: 'center',
-              background: 'transparent',
-              backgroundColor: 'transparent',
             }}
           >
             <div
@@ -219,8 +200,6 @@ export default function ScrollExpansionHero() {
                 letterSpacing: '0.12em',
                 opacity: 0.7,
                 lineHeight: 1.5,
-                background: 'transparent',
-                backgroundColor: 'transparent',
               }}
             >
               {tr.hero.tagline}
@@ -246,8 +225,7 @@ export default function ScrollExpansionHero() {
               </a>
             </div>
           </div>{/* end tagline+CTA */}
-          </div>{/* end visual card */}
-        </div>{/* end sizing wrapper */}
+        </div>{/* end card */}
 
         {/* Scroll hint */}
         <div
