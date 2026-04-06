@@ -4,13 +4,6 @@ import { motion, type Variants } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
 import { t } from '@/lib/translations';
 
-const HOURS = [
-  { day: 'Lunes', hours: null },
-  { day: 'Martes–Jueves', hours: '20:00 – 23:30' },
-  { day: 'Viernes', hours: '13:30–15:30 · 20:00–23:30' },
-  { day: 'Sábado', hours: '13:30–15:30 · 20:00–23:30' },
-  { day: 'Domingo', hours: null },
-];
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -142,7 +135,7 @@ export default function ReservationsSection() {
             {res.hoursTitle}
           </p>
           <div className="max-w-sm mx-auto">
-            {HOURS.map(({ day, hours }) => (
+            {res.hours.map(({ day, hours }) => (
               <div
                 key={day}
                 className="flex justify-between py-3"
@@ -164,7 +157,7 @@ export default function ReservationsSection() {
                     fontSize: '0.9rem',
                   }}
                 >
-                  {hours ?? 'Cerrado'}
+                  {hours ?? res.closed}
                 </span>
               </div>
             ))}
