@@ -141,8 +141,8 @@ export default function ScrollExpansionHero() {
             borderRadius: '12px',
             overflow: 'hidden',
             backgroundImage: 'url(/images/hero2.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundSize: 'auto 130%',
+            backgroundPosition: 'center top',
             backgroundColor: '#111',
           }}
         >
@@ -150,7 +150,7 @@ export default function ScrollExpansionHero() {
           <div
             style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)',
+              background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 25%, transparent 60%)',
               pointerEvents: 'none',
               zIndex: 1,
             }}
